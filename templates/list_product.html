@@ -3,6 +3,27 @@
 <head>
   <title>Product List</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" >
+  <style>
+    .materials-popup {
+      position: absolute;
+      width: 400px;
+      right: -410px; /* position to right side of toggle */
+      top: 0;
+      background: white;
+      border: 1px solid #ddd;
+      padding: 1rem;
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+      display: none;
+      z-index: 1050;
+      overflow-y: auto;
+      max-height: 300px;
+      white-space: normal;
+    }
+    .materials-cell {
+      position: relative; /* to position popup relative to cell */
+      width: 180px;
+    }
+  </style>
 </head>
 <body class="container mt-4">
   <h1>Products</h1>
@@ -27,12 +48,25 @@
         <td>{{ p.section_name }}</td>
         <td>{{ p.qty }}</td>
         <td>{{ p.stock }}</td>
-        <td>
-          {% for material in p.raw_materials_used %}
-            <span class="badge bg-secondary">{{ material.base_name }}</span>
-          {% else %}
-            None
-          {% endfor %}
+        <td class="materials-cell">
+          <a href="javascript:void(0);" class="view-materials-toggle text-decoration-none" style="cursor:pointer;" title="View Materials" data-product-id="{{ p.id }}">
+            View Materials &#9654;
+          </a>
+          <div class="materials-popup">
+            <ul class="list-group list-group-flush mb-0">
+              {% for material in p.raw_materials_used %}
+                <li class="list-group-item">
+                  <div class="row">
+                    <div class="col-4"><strong>{{ material.base_name }}</strong></div>
+                    <div class="col-4">Spec: {{ material.defined_name_with_spec }}</div>
+                    <div class="col-4">Brand: {{ material.brand }}</div>
+                  </div>
+                </li>
+              {% else %}
+                <li class="list-group-item text-muted">No materials</li>
+              {% endfor %}
+            </ul>
+          </div>
         </td>
         <td>
           <a href="{{ url_for('edit_product', id=p.id) }}" class="btn btn-sm btn-warning">Edit</a>
@@ -46,6 +80,33 @@
       {% endfor %}
     </tbody>
   </table>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      const toggles = document.querySelectorAll('.view-materials-toggle');
+      toggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          // Close other popups
+          document.querySelectorAll('.materials-popup').forEach(popup => {
+            if (popup !== this.nextElementSibling) popup.style.display = 'none';
+          });
+          const popup = this.nextElementSibling;
+          if (popup.style.display === 'block') {
+            popup.style.display = 'none';
+          } else {
+            popup.style.display = 'block';
+            // No need to reposition as popup is absolute inside cell container
+          }
+        });
+      });
+
+      document.addEventListener('click', function() {
+        document.querySelectorAll('.materials-popup').forEach(popup => popup.style.display = 'none');
+      });
+    });
+  </script>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash , jsonify
 from models import Storage, Dealer , Product
 from extensions import db
 from flask_migrate import Migrate
@@ -147,6 +147,22 @@ def edit_storage(id):
         flash('Storage updated!')
         return redirect(url_for('list_storage'))
     return render_template('edit_storage.html', storage=storage, dealers=dealers, units_list=UNITS_LIST)
+
+
+@app.route('/storage/details/<int:storage_id>')
+def storage_details(storage_id):
+    storage = Storage.query.get_or_404(storage_id)
+    data = {
+        "base_name": storage.base_name,
+        "defined_name_with_spec": storage.defined_name_with_spec,
+        "brand": storage.brand,
+        "hsn_code": storage.hsn_code,
+        "tax": storage.tax,
+        "current_stock": storage.current_stock,
+        "units": storage.units,
+        "dealer": storage.dealer.name if storage.dealer else "N/A"
+    }
+    return jsonify(data)
 
 @app.route('/storage/delete/<int:id>', methods=['POST'])
 def delete_storage(id):
